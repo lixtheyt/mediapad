@@ -4,6 +4,14 @@
 	(generator_version "10.0")
 	(uuid "dc888635-17de-4b33-96bf-855a3a08cd1f")
 	(paper "A4")
+	(title_block
+		(title "Mediapad")
+		(date "2026-07-23")
+		(rev "1.0")
+		(company "Lix")
+		(comment 1 "it is a part of the Hackpad mission/project.")
+		(comment 2 "This schematic is for Mediapad, created by Lix and")
+	)
 	(lib_symbols
 		(symbol "Connector_Generic:Conn_01x04"
 			(pin_names
@@ -2193,16 +2201,6 @@
 			)
 		)
 		(uuid "e7ff6a3d-bd1e-491c-9e46-bc4fd6093cdc")
-	)
-	(text "3 Modes:\n	1. Jog wheel\n	2. Volume\n	3. Music picker via rotating"
-		(exclude_from_sim no)
-		(at 304.546 117.602 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "ea39988d-dece-40ae-aa09-19a1c8200e07")
 	)
 	(text "NEXT TRACK"
 		(exclude_from_sim no)
