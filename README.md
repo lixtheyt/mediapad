@@ -1,5 +1,10 @@
 # Mediapad
 
+<!-- HELYX_STATUS_START -->
+![Status](https://img.shields.io/badge/status-active-brightgreen
+)<!-- HELYX_STATUS_END -->
+---
+
 Mediapad is an 8 key hackpad with a rotary encoder, an OLED Display. It also has 20 SK6812 MINI-E LEDs, and uses QMK firmware.
 
 ## Features:
