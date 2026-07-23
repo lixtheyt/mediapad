@@ -1,3 +1,6 @@
+// Copyright 2026 Lix
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include QMK_KEYBOARD_H
 #include <string.h>
 #include <stdio.h>
@@ -11,7 +14,10 @@ enum custom_keycodes {
     RGB_SEL_R,
     RGB_SEL_G,
     RGB_SEL_B,
-    RGB_SEL_VAL
+    RGB_SEL_VAL,
+    RGB_SEL_SCENE,
+    RGB_FX_NEXT,
+    RGB_FX_PREV
 };
 
 #define NUM_FUNC_LAYERS 5
@@ -19,8 +25,13 @@ enum custom_keycodes {
 #define LAYER_RGB_SCENE 6
 #define RGB_STEP 8
 
+/* Must match rgb_matrix.max_brightness in keyboard.json. 20 SK6812s at full
+ * white would pull well over an amp, so brightness is capped here too and the
+ * OLED reports the same number the driver actually uses. */
+#define RGB_VAL_MAX 150
+
 static uint8_t rgb_r = 255, rgb_g = 255, rgb_b = 255;
-static uint8_t rgb_val = 255;
+static uint8_t rgb_val = RGB_VAL_MAX;
 
 static uint32_t oled_message_timer = 0;
 #define OLED_MESSAGE_DURATION 3000
@@ -32,8 +43,8 @@ static uint32_t system_msg_timer = 0;
 static bool held[3][3] = {0};
 static bool combo_fired = false;
 
-#define HOLD_TIME_LONG  5000  
-#define HOLD_TIME_SHORT 2000  
+#define HOLD_TIME_LONG  5000
+#define HOLD_TIME_SHORT 2000
 
 typedef enum { COMBO_NONE, COMBO_BOOTLOADER, COMBO_EEPROM, COMBO_REBOOT, COMBO_DEBUG } combo_id_t;
 static combo_id_t active_combo = COMBO_NONE;
@@ -78,6 +89,7 @@ static void update_hidden_combos(void) {
         case COMBO_BOOTLOADER:
             oled_clear();
             oled_write_ln("BOOTLOADER", false);
+            oled_render();
             wait_ms(300);
             bootloader_jump();
             break;
@@ -89,6 +101,7 @@ static void update_hidden_combos(void) {
         case COMBO_REBOOT:
             oled_clear();
             oled_write_ln("REBOOTING", false);
+            oled_render();
             wait_ms(300);
             soft_reset_keyboard();
             break;
@@ -102,7 +115,7 @@ static void update_hidden_combos(void) {
     }
 }
 
-#define NOWPLAYING_STALE_MS 4000  
+#define NOWPLAYING_STALE_MS 4000
 
 static char np_title[13]  = {0};
 static char np_artist[12] = {0};
@@ -114,7 +127,7 @@ static bool np_has_data = false;
 
 void raw_hid_receive(uint8_t *data, uint8_t length) {
     if (length < 32) return;
-    if (data[0] != 0x01) return;  
+    if (data[0] != 0x01) return;
 
     np_playing = data[1] != 0;
     np_pos_sec = (uint16_t)data[2] | ((uint16_t)data[3] << 8);
@@ -139,22 +152,42 @@ static bool nowplaying_is_stale(void) {
     return timer_elapsed32(np_last_update) > NOWPLAYING_STALE_MS;
 }
 
-enum rgb_channel { CH_NONE, CH_RED, CH_GREEN, CH_BLUE, CH_BRIGHTNESS };
+/* What the encoder is currently pointed at. Picking a target is a separate
+ * press from turning it, so one encoder can drive every RGB parameter. */
+enum rgb_channel { CH_NONE, CH_RED, CH_GREEN, CH_BLUE, CH_BRIGHTNESS, CH_SCENE };
 static enum rgb_channel active_channel = CH_NONE;
 
-typedef struct { uint8_t r, g, b; } rgb_scene_t;
-const rgb_scene_t rgb_scenes[] = {
-    {255,   0,   0},  
-    {  0, 255,   0},  
-    {  0,   0, 255},  
-    {255, 255, 255},  
-    {255, 128,   0},  
-    {128,   0, 255},  
-    {  0, 255, 255},  
-    {255,   0, 255},  
+typedef struct { uint8_t mode; const char *name; } rgb_preset_t;
+
+/* Scenes are whole animations, the sort of thing a normal keyboard ships with.
+ * Splash also reacts to keypresses, spreading out from the key you hit. */
+static const rgb_preset_t rgb_scenes[] = {
+    {RGB_MATRIX_CYCLE_PINWHEEL,         "Pinwheel"},
+    {RGB_MATRIX_CYCLE_SPIRAL,           "Vortex"},
+    {RGB_MATRIX_CYCLE_LEFT_RIGHT,       "Rainbow wave"},
+    {RGB_MATRIX_RAINBOW_MOVING_CHEVRON, "Chevron"},
+    {RGB_MATRIX_SPLASH,                 "Splash"},
+    {RGB_MATRIX_JELLYBEAN_RAINDROPS,    "Raindrops"},
 };
 #define NUM_SCENES (sizeof(rgb_scenes) / sizeof(rgb_scenes[0]))
 static uint8_t scene_index = 0;
+
+/* Custom effects all honour the hue/sat dialled in with RGB_SEL_R/G/B, so the
+ * colour you mix is the colour that comes out. */
+static const rgb_preset_t rgb_custom_fx[] = {
+    {RGB_MATRIX_SOLID_COLOR,           "Solid"},
+    {RGB_MATRIX_BREATHING,             "Breathing"},
+    {RGB_MATRIX_BAND_VAL,              "Band"},
+    {RGB_MATRIX_BAND_PINWHEEL_VAL,     "Band pinwheel"},
+    {RGB_MATRIX_BAND_SPIRAL_VAL,       "Band spiral"},
+    {RGB_MATRIX_SOLID_REACTIVE_SIMPLE, "React simple"},
+    {RGB_MATRIX_SOLID_REACTIVE,        "React hue"},
+    {RGB_MATRIX_SOLID_REACTIVE_WIDE,   "React wide"},
+    {RGB_MATRIX_SOLID_REACTIVE_CROSS,  "React cross"},
+    {RGB_MATRIX_SOLID_SPLASH,          "Splash solid"},
+};
+#define NUM_CUSTOM_FX (sizeof(rgb_custom_fx) / sizeof(rgb_custom_fx[0]))
+static uint8_t custom_fx_index = 0;
 
 static inline uint8_t clamp_add(uint8_t val, int16_t delta) {
     int16_t r = (int16_t)val + delta;
@@ -163,22 +196,55 @@ static inline uint8_t clamp_add(uint8_t val, int16_t delta) {
     return (uint8_t)r;
 }
 
+static inline uint8_t clamp_val(uint8_t val, int16_t delta) {
+    int16_t r = (int16_t)val + delta;
+    if (r < 0) return 0;
+    if (r > RGB_VAL_MAX) return RGB_VAL_MAX;
+    return (uint8_t)r;
+}
+
+/* QMK ships hsv_to_rgb but no inverse, and rgb_matrix is driven by HSV.
+ * Value is dropped on purpose: brightness is its own control (rgb_val). */
+static void rgb_to_hs(uint8_t r, uint8_t g, uint8_t b, uint8_t *out_h, uint8_t *out_s) {
+    uint8_t max = r > g ? (r > b ? r : b) : (g > b ? g : b);
+    uint8_t min = r < g ? (r < b ? r : b) : (g < b ? g : b);
+    uint8_t chroma = max - min;
+
+    if (chroma == 0 || max == 0) {
+        *out_h = 0;
+        *out_s = 0;
+        return;
+    }
+
+    *out_s = (uint8_t)(((uint16_t)chroma * 255) / max);
+
+    int16_t deg;
+    if (max == r) {
+        deg = (int16_t)(((int32_t)((int16_t)g - (int16_t)b) * 60) / chroma);
+    } else if (max == g) {
+        deg = (int16_t)(((int32_t)((int16_t)b - (int16_t)r) * 60) / chroma) + 120;
+    } else {
+        deg = (int16_t)(((int32_t)((int16_t)r - (int16_t)g) * 60) / chroma) + 240;
+    }
+    if (deg < 0) deg += 360;
+    *out_h = (uint8_t)(((uint32_t)deg * 255) / 360);
+}
+
 void apply_rgb_custom(void) {
-    uint8_t r = (uint16_t)rgb_r * rgb_val / 255;
-    uint8_t g = (uint16_t)rgb_g * rgb_val / 255;
-    uint8_t b = (uint16_t)rgb_b * rgb_val / 255;
-    rgblight_setrgb(r, g, b);
+    uint8_t h, s;
+    rgb_to_hs(rgb_r, rgb_g, rgb_b, &h, &s);
+    rgb_matrix_mode_noeeprom(rgb_custom_fx[custom_fx_index].mode);
+    rgb_matrix_sethsv_noeeprom(h, s, rgb_val);
 }
 
 void apply_rgb_scene(void) {
-    uint8_t r = (uint16_t)rgb_scenes[scene_index].r * rgb_val / 255;
-    uint8_t g = (uint16_t)rgb_scenes[scene_index].g * rgb_val / 255;
-    uint8_t b = (uint16_t)rgb_scenes[scene_index].b * rgb_val / 255;
-    rgblight_setrgb(r, g, b);
+    rgb_matrix_mode_noeeprom(rgb_scenes[scene_index].mode);
+    /* Scenes generate their own hue; brightness is the only part we set. */
+    rgb_matrix_sethsv_noeeprom(0, 255, rgb_val);
 }
 
 void keyboard_post_init_user(void) {
-    rgblight_enable();
+    rgb_matrix_enable_noeeprom();
     apply_rgb_scene();
 }
 
@@ -215,11 +281,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [5] = LAYOUT(
         RGB_SEL_R,         RGB_SEL_G,           RGB_SEL_B,
         RGB_MODE_SCENE,    RGB_MODE_CUSTOM,     RGB_SEL_VAL,
-        _______,           _______,             CYCLE_LAYER
+        RGB_FX_PREV,       RGB_FX_NEXT,         CYCLE_LAYER
     ),
     [6] = LAYOUT(
         _______,           _______,             _______,
-        RGB_MODE_SCENE,    RGB_MODE_CUSTOM,     _______,
+        RGB_SEL_SCENE,     RGB_MODE_CUSTOM,     RGB_SEL_VAL,
         _______,           _______,             CYCLE_LAYER
     )
 };
@@ -248,25 +314,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     layer_move(0);
                 }
-                oled_message_timer = timer_read32();  
+                oled_message_timer = timer_read32();
             }
             return false;
 
         case RGB_MODE_CUSTOM:
             if (record->event.pressed) {
                 layer_move(LAYER_RGB_CUSTOM);
-                active_channel = CH_NONE;
+                /* Point the encoder at something straight away so it is never
+                 * dead on arrival; R/G/B repoint it in one press. */
+                active_channel = CH_BRIGHTNESS;
                 apply_rgb_custom();
             }
             return false;
 
         case RGB_MODE_SCENE:
             if (record->event.pressed) {
-                if (get_highest_layer(layer_state) == LAYER_RGB_SCENE) {
-                    scene_index = (scene_index + 1) % NUM_SCENES;
-                } else {
-                    layer_move(LAYER_RGB_SCENE);
-                }
+                layer_move(LAYER_RGB_SCENE);
+                active_channel = CH_SCENE;
                 apply_rgb_scene();
             }
             return false;
@@ -282,6 +347,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case RGB_SEL_VAL:
             if (record->event.pressed) { active_channel = CH_BRIGHTNESS; }
+            return false;
+        case RGB_SEL_SCENE:
+            if (record->event.pressed) { active_channel = CH_SCENE; }
+            return false;
+
+        case RGB_FX_NEXT:
+            if (record->event.pressed) {
+                custom_fx_index = (custom_fx_index + 1) % NUM_CUSTOM_FX;
+                apply_rgb_custom();
+            }
+            return false;
+        case RGB_FX_PREV:
+            if (record->event.pressed) {
+                custom_fx_index = (uint8_t)((custom_fx_index + NUM_CUSTOM_FX - 1) % NUM_CUSTOM_FX);
+                apply_rgb_custom();
+            }
             return false;
     }
     return true;
@@ -300,14 +381,25 @@ static const char *layer_name(uint8_t layer) {
     }
 }
 
+static const char *channel_name(void) {
+    switch (active_channel) {
+        case CH_RED:        return "R";
+        case CH_GREEN:      return "G";
+        case CH_BLUE:       return "B";
+        case CH_BRIGHTNESS: return "Bright";
+        case CH_SCENE:      return "Scene";
+        default:            return "-";
+    }
+}
+
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     return OLED_ROTATION_0;
 }
 
-#define MARQUEE_WIDTH 20      
-#define MARQUEE_STEP_MS 300   
+#define MARQUEE_WIDTH 20
+#define MARQUEE_STEP_MS 300
 
-static char marquee_buf[13 + 3 + 12 + 4] = {0};  
+static char marquee_buf[13 + 3 + 12 + 4] = {0};
 static uint16_t marquee_len = 0;
 static uint16_t marquee_offset = 0;
 static uint32_t marquee_timer = 0;
@@ -319,7 +411,7 @@ static void marquee_rebuild(void) {
         strncat(marquee_buf, " - ", sizeof(marquee_buf) - strlen(marquee_buf) - 1);
     }
     strncat(marquee_buf, np_title, sizeof(marquee_buf) - strlen(marquee_buf) - 1);
-    strncat(marquee_buf, "     ", sizeof(marquee_buf) - strlen(marquee_buf) - 1);  
+    strncat(marquee_buf, "     ", sizeof(marquee_buf) - strlen(marquee_buf) - 1);
     marquee_len = strlen(marquee_buf);
     marquee_offset = 0;
 }
@@ -370,6 +462,28 @@ static void draw_time_line(uint16_t pos, uint16_t dur) {
     oled_write_ln(line, false);
 }
 
+/* On the RGB layers the display becomes the control panel: which effect is
+ * live, the mixed colour, and what the encoder is about to change. */
+static void draw_rgb_panel(uint8_t layer) {
+    char line[MARQUEE_WIDTH + 2];
+    oled_clear();
+    if (layer == LAYER_RGB_SCENE) {
+        oled_write_ln("RGB Scene", false);
+        oled_write_ln(rgb_scenes[scene_index].name, false);
+        snprintf(line, sizeof(line), "Val %3u", rgb_val);
+        oled_write_ln(line, false);
+        snprintf(line, sizeof(line), "Enc: %s", channel_name());
+        oled_write_ln(line, false);
+    } else {
+        oled_write_ln("RGB Custom", false);
+        oled_write_ln(rgb_custom_fx[custom_fx_index].name, false);
+        snprintf(line, sizeof(line), "R%3u G%3u B%3u", rgb_r, rgb_g, rgb_b);
+        oled_write_ln(line, false);
+        snprintf(line, sizeof(line), "V%3u  Enc:%s", rgb_val, channel_name());
+        oled_write_ln(line, false);
+    }
+}
+
 static char last_title_for_marquee[13] = {0};
 
 bool oled_task_user(void) {
@@ -379,7 +493,7 @@ bool oled_task_user(void) {
         oled_write_ln(system_msg, false);
         return false;
     } else if (system_msg != NULL) {
-        system_msg = NULL;  
+        system_msg = NULL;
     }
 
     if (oled_message_timer != 0 && timer_elapsed32(oled_message_timer) < OLED_MESSAGE_DURATION) {
@@ -390,6 +504,12 @@ bool oled_task_user(void) {
         return false;
     }
     oled_message_timer = 0;
+
+    uint8_t layer = get_highest_layer(layer_state);
+    if (layer == LAYER_RGB_CUSTOM || layer == LAYER_RGB_SCENE) {
+        draw_rgb_panel(layer);
+        return false;
+    }
 
     if (!nowplaying_is_stale() && np_title[0] != '\0') {
         if (strncmp(last_title_for_marquee, np_title, sizeof(last_title_for_marquee)) != 0) {
@@ -437,21 +557,75 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
             else { tap_code16(LCTL(KC_MINUS)); }
             break;
 
-        case LAYER_RGB_CUSTOM:  
+        case LAYER_RGB_CUSTOM:
             switch (active_channel) {
                 case CH_RED:        rgb_r   = clamp_add(rgb_r, delta);   break;
                 case CH_GREEN:      rgb_g   = clamp_add(rgb_g, delta);   break;
                 case CH_BLUE:       rgb_b   = clamp_add(rgb_b, delta);   break;
-                case CH_BRIGHTNESS: rgb_val = clamp_add(rgb_val, delta); break;
-                case CH_NONE: break;
+                case CH_BRIGHTNESS: rgb_val = clamp_val(rgb_val, delta); break;
+                default: break;
             }
             apply_rgb_custom();
             break;
 
-        case LAYER_RGB_SCENE:  
-            rgb_val = clamp_add(rgb_val, delta);
+        case LAYER_RGB_SCENE:
+            if (active_channel == CH_SCENE) {
+                scene_index = clockwise
+                    ? (uint8_t)((scene_index + 1) % NUM_SCENES)
+                    : (uint8_t)((scene_index + NUM_SCENES - 1) % NUM_SCENES);
+            } else {
+                rgb_val = clamp_val(rgb_val, delta);
+            }
             apply_rgb_scene();
             break;
     }
     return false;
 }
+
+/*
+ * Encoder modes, in the order CYCLE_LAYER steps through them.
+ *
+ * Tapping the encoder (CYCLE_LAYER) walks 0 -> 1 -> 2 -> 3 -> 4 -> 0.
+ * The two RGB layers are not part of that cycle: they are entered directly
+ * with RGB_MODE_SCENE / RGB_MODE_CUSTOM, and CYCLE_LAYER drops back to 0.
+ *
+ *   #  Layer            OLED label    Turn CW              Turn CCW
+ *   -  ---------------  ------------  -------------------  -------------------
+ *   0  base             "Volume"      volume up            volume down
+ *   1                   "Track skip"  next track           previous track
+ *   2                   "Arrows"      arrow up             arrow down
+ *   3                   "Scroll"      mouse wheel up       mouse wheel down
+ *   4                   "Zoom"        zoom in  (Ctrl +)    zoom out (Ctrl -)
+ *   5  LAYER_RGB_CUSTOM "RGB Custom"  selected target +    selected target -
+ *   6  LAYER_RGB_SCENE  "RGB Scene"   selected target +    selected target -
+ *
+ * On both RGB layers the encoder is a general-purpose dial: you first press a
+ * key to say what it should act on, then turn it. The OLED shows the current
+ * target on the "Enc:" line, so it is never a guess.
+ *
+ *   Physical layout        SW1 SW2 SW3 SW6
+ *                          SW4 SW5
+ *                          SW7 SW8   (encoder)
+ *
+ *   Layer 6, "RGB Scene" - entered with SW4 from any other layer
+ *     SW4  point encoder at the scene list (default on entry)
+ *     SW6  point encoder at brightness
+ *     SW5  switch over to RGB Custom
+ *     rest fall through to layer 0, so the media keys still work here
+ *     5 scenes: Pinwheel, Rainbow wave, Chevron, Splash, Raindrops
+ *
+ *   Layer 5, "RGB Custom" - entered with SW5 from any other layer
+ *     SW1/SW2/SW3  point encoder at red / green / blue
+ *     SW6          point encoder at brightness (default on entry)
+ *     SW7/SW8      previous / next effect
+ *     SW4          switch back to RGB Scene
+ *     10 effects: Solid, Breathing, Band, Band pinwheel, Band spiral,
+ *                 React simple, React hue, React wide, React cross,
+ *                 Splash solid
+ *
+ * Step size is RGB_STEP (8) per detent. Brightness is capped at RGB_VAL_MAX
+ * (150) to keep 20 SK6812s inside a sane USB current budget.
+ *
+ * Reactive effects (React*, Splash*) need RGB_MATRIX_KEYPRESSES, set in
+ * config.h, plus the per-LED positions in keyboard.json's rgb_matrix.layout.
+ */

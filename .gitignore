@@ -1,0 +1,13 @@
+# Claude Code session worktrees / scratch — not part of the project
+.claude/
+
+# Python / PyInstaller build leftovers from the companion app
+# (dist/ is intentionally NOT ignored, so the built .exe can be committed)
+__pycache__/
+*.pyc
+build/
+*.spec
+
+# OS cruft
+Thumbs.db
+.DS_Store
