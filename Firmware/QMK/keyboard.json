@@ -10,9 +10,9 @@
         "mousekey": true,
         "nkro": true,
         "encoder": true,
-        "rgblight": true,
-		"oled": true,
-		"raw_hid": true
+        "rgb_matrix": true,
+        "oled": true,
+        "raw": true
     },
     "matrix_pins": {
         "cols": ["GP26", "GP27", "GP0"],
@@ -25,19 +25,62 @@
     },
     "ws2812": {
         "pin": "GP1",
-		"driver": "vendor"
+        "driver": "vendor"
     },
-    "rgblight": {
-        "led_count": 20
+    "rgb_matrix": {
+        "driver": "ws2812",
+        "max_brightness": 150,
+        "sleep": true,
+        "default": {
+            "animation": "cycle_pinwheel",
+            "val": 150
+        },
+        "animations": {
+            "cycle_pinwheel": true,
+            "cycle_spiral": true,
+            "cycle_left_right": true,
+            "rainbow_moving_chevron": true,
+            "splash": true,
+            "jellybean_raindrops": true,
+            "solid_color": true,
+            "breathing": true,
+            "band_val": true,
+            "band_pinwheel_val": true,
+            "band_spiral_val": true,
+            "solid_reactive_simple": true,
+            "solid_reactive": true,
+            "solid_reactive_wide": true,
+            "solid_reactive_cross": true,
+            "solid_splash": true
+        },
+        "layout": [
+            {"x": 14, "y": 63, "flags": 2},
+            {"x": 77, "y": 64, "flags": 2},
+            {"x": 145, "y": 64, "flags": 2},
+            {"x": 213, "y": 62, "flags": 2},
+            {"x": 224, "y": 44, "flags": 2},
+            {"matrix": [1, 2], "x": 224, "y": 24, "flags": 4},
+            {"x": 221, "y": 3, "flags": 2},
+            {"x": 117, "y": 0, "flags": 2},
+            {"x": 8, "y": 2, "flags": 2},
+            {"x": 0, "y": 22, "flags": 2},
+            {"matrix": [1, 0], "x": 1, "y": 42, "flags": 4},
+            {"matrix": [2, 0], "x": 54, "y": 52, "flags": 4},
+            {"matrix": [1, 1], "x": 54, "y": 36, "flags": 4},
+            {"matrix": [0, 0], "x": 54, "y": 20, "flags": 4},
+            {"matrix": [0, 1], "x": 110, "y": 20, "flags": 4},
+            {"matrix": [0, 2], "x": 168, "y": 20, "flags": 4},
+            {"matrix": [2, 2], "x": 171, "y": 38, "flags": 4},
+            {"x": 202, "y": 46, "flags": 2},
+            {"x": 170, "y": 54, "flags": 2},
+            {"matrix": [2, 1], "x": 138, "y": 46, "flags": 4}
+        ]
     },
-	"i2c": {
-		"driver": "vendor"
-	},
     "processor": "RP2040",
     "url": "https://github.com/lixtheyt",
     "usb": {
         "device_version": "1.0.0",
-        "pid": "0x0000",
+        "pid": "0x4D50",
         "vid": "0xFEED"
     },
     "layouts": {
@@ -48,10 +91,10 @@
                 {"matrix": [0, 2], "x": 2, "y": 0},
                 {"matrix": [1, 0], "x": 0, "y": 1},
                 {"matrix": [1, 1], "x": 1, "y": 1},
-                {"matrix": [1, 2], "x": 2, "y": 1},
+                {"matrix": [1, 2], "x": 3, "y": 0},
                 {"matrix": [2, 0], "x": 0, "y": 2},
                 {"matrix": [2, 1], "x": 1, "y": 2},
-                {"matrix": [2, 2], "x": 2, "y": 2}
+                {"matrix": [2, 2], "x": 2.25, "y": 1.75}
             ]
         }
     }
