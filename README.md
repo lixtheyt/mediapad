@@ -1,8 +1,6 @@
----
 <!-- HELYX_STATUS_START -->
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 <!-- HELYX_STATUS_END -->
----
 
 # Mediapad
 
