@@ -16,18 +16,23 @@ It has 4 separate printed pieces.
 
 <img src=CAD/assets/image.png alt="Schematic" width="500"/>
 
+
 ## PCB
 I made my PCB inside KiCad.
 Libraries I used were originally from the Hackpad website but I also used some that I had found on [grabcad](https://grabcad.com/library)
 
+
 ### Schematic
 <img src=PCB/assets/schematic.png alt="Schematic" width="600"/>
+
 
 ### PCB
 <img src=PCB/assets/pcb.png alt="PCB" width="500"/>
 
+
 ## Firmware Overview
 This hackpad uses [QMK](https://qmk.fm/) firmware for everything.
+
 
 ### Rotary encoder
 Tapping the encoder cycles through five modes; turning it then performs that
@@ -39,23 +44,23 @@ mode's action. The mode name flashes on the OLED each time you tap.
 4. **Scroll** — mouse wheel up / down
 5. **Zoom** — zoom in / out (Ctrl +/-)
 
+
 ### RGB
 The lighting is separate from the encoder cycle and is opened with the two middle
 keys, so it does not eat one of the modes above:
 
-- **RGB Scene** — six ready-made animations: Pinwheel, Vortex (colour swirl around
+- **RGB Scene** — 6 premade animations: Pinwheel, Vortex (color swirl around
   the board), Rainbow wave, Chevron, Splash and Raindrops. On this layer the
   encoder switches scene or sets brightness.
-- **RGB Custom** — mix your own colour (red / green / blue / brightness, each dialled
+- **RGB Custom** — mix your own color (red / green / blue / brightness, each dialled
   in with the encoder) and pick from ten effects, including reactive ones that
   light up outward from the key you press.
 
-The OLED turns into a small control panel on both RGB layers, showing the current
-effect, the colour and what the encoder is about to change.
 
 ### OLED
 Shows the currently playing track — title, artist and a progress bar — streamed
 from the companion app below, plus the name of each mode when you switch.
+When messing with RGB lighting it also shows current informations that are helpful for setting it correctly.
 
 
 ## BOM:
@@ -74,21 +79,11 @@ from the companion app below, plus the name of each mode when you switch.
 
 ## Companion app (now playing on the OLED)
 
-`Companion/mediapad_tray.exe` is a small, tray-only Windows app that streams
-whatever you are currently playing — Spotify, a browser tab, anything Windows
-reports media for — to the mediapad's OLED over Raw HID. Without it the OLED just
-shows "Hackpad".
+`Companion/mediapad_tray.exe` is a portable application made in Python that feeds Mediapad with the latest
+information about current played media on your computer. Without it the OLED just shows "Hackpad".
 
-It is portable: one file, nothing to install and no folders created next to it.
-Double-click it and it lives entirely in the notification-area tray (there is no
-window). A grey icon means the keyboard was not found; it turns green once the
-mediapad is plugged in with this firmware flashed. Running it a second time does
-nothing — only one instance ever stays in the tray.
-
-Right-click the tray icon for the menu:
-
-- **Send now playing** — pause or resume streaming without quitting
-- **Run at startup** — add/remove a Windows startup entry (it also appears under
-  **Task Manager → Startup**, so it can be disabled there too)
-- **Uninstall** — asks to confirm, turns off startup and deletes the app itself
-- **Quit** — stop it for this session
+As I have mentioned... it is a portable application. That means you don't have to install anything.
+Just open, mess with it in the tray (where background applications are located) and make sure to enable
+the setting that allows it to open on start up of your computer, so you don't have to turn it on manually
+every time you turn on your computer. If you've got no idea where the tray with the background applications
+is located then please, google it.
