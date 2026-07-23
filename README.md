@@ -38,6 +38,8 @@ This hackpad uses [QMK](https://qmk.fm/) firmware for everything.
   3.  Up/Down mode
   4.  Mouse Wheel Up/Down mode
   5.  Zooming mode
+  6.  Changing colors
+  7.  Changing color scenes
 - the OLED is supposed to display the current playing track and when switching between modes then also the name of each mode
 - more in future idk
 
