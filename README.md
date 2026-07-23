@@ -92,7 +92,3 @@ Right-click the tray icon for the menu:
   **Task Manager → Startup**, so it can be disabled there too)
 - **Uninstall** — asks to confirm, turns off startup and deletes the app itself
 - **Quit** — stop it for this session
-
-To rebuild the exe after editing `Companion/mediapad_tray.py`, run
-`Companion/build.bat` (needs `pystray`, `pillow`, the `winrt` packages and
-`pyinstaller`).
