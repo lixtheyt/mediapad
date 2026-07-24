@@ -90,4 +90,4 @@ As I have mentioned... it is a portable application. That means you don't have t
 Just open, mess with it in the tray (where background applications are located) and make sure to enable
 the setting that allows it to open on start up of your computer, so you don't have to turn it on manually
 every time you turn on your computer. If you've got no idea where the tray with the background applications
-is located then please, (google it)[https://www.google.com/search?q=Where+is+the+background+tray+located?].
+is located then please, [google it](https://www.google.com/search?q=Where+is+the+background+tray+located?).
