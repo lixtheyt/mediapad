@@ -66,6 +66,11 @@ Shows the currently playing track — title, artist and a progress bar — strea
 from the companion app below, plus the name of each mode when you switch.
 When messing with RGB lighting it also shows current informations that are helpful for setting it correctly.
 
+## Firmware:
+I want to note out that the firmware was mostly done by AI due to my limited C knowledge
+and the difficulty to create a firmware that does such advanced things.
+
+
 
 ## BOM:
 
