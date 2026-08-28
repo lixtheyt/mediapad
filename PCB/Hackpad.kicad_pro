@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.0,
-          "height": 1.7,
-          "width": 3.7
+          "drill": 0.0,
+          "height": 1.6,
+          "width": 0.82
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -240,7 +240,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "1.1"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -524,7 +524,7 @@
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "../OUTPUT/",
+      "plot": "../Production/grb/",
       "specctra_dsn": "",
       "vrml": ""
     },

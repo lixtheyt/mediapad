@@ -1,24 +1,37 @@
-// Copyright 2023 QMK
+// Copyright 2026 Lix
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
+     * Eight MX switches plus the encoder's push switch. The encoder sits to
+     * the right of the lower two rows, so it is the last key in LAYOUT.
+     *
      * ┌───┬───┬───┬───┐
-     * │ 7 │ 8 │ 9 │ / │
-     * ├───┼───┼───┼───┤
-     * │ 4 │ 5 │ 6 │ * │
-     * ├───┼───┼───┼───┤
-     * │ 1 │ 2 │ 3 │ - │
-     * ├───┼───┼───┼───┤
-     * │ 0 │ . │Ent│ + │
-     * └───┴───┴───┴───┘
+     * │Rwd│Ply│FFd│Mut│
+     * ├───┼───┼───┴───┘
+     * │Prv│Nxt│
+     * ├───┼───┤ ┌───┐
+     * │Vl-│Vl+│ │Stp│  <- encoder push
+     * └───┴───┘ └───┘
+     *
+     * Turning the encoder is volume, see encoder_update_user() below.
      */
     [0] = LAYOUT(
-        KC_P7,   KC_P8,   KC_P9,   KC_PSLS,
-        KC_P4,   KC_P5,   KC_P6,   KC_PAST,
-        KC_P1,   KC_P2,   KC_P3,   KC_PMNS,
-        KC_P0,   KC_PDOT, KC_PENT, KC_PPLS
+        KC_MRWD, KC_MPLY, KC_MFFD,
+        KC_MPRV, KC_MNXT, KC_MUTE,
+        KC_VOLD, KC_VOLU, KC_MSTP
     )
 };
+
+bool encoder_update_user(uint8_t index, bool clockwise) {
+    if (index == 0) {
+        if (clockwise) {
+            tap_code(KC_VOLU);
+        } else {
+            tap_code(KC_VOLD);
+        }
+    }
+    return false;
+}

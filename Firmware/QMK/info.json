@@ -1,0 +1,153 @@
+{
+    "manufacturer": "Lix",
+    "keyboard_name": "mediapad",
+    "maintainer": "Lix",
+    "bootloader": "rp2040",
+    "diode_direction": "COL2ROW",
+    "features": {
+        "bootmagic": true,
+        "extrakey": true,
+        "mousekey": true,
+        "nkro": true,
+        "encoder": true,
+        "rgb_matrix": true,
+        "oled": true,
+        "raw": true
+    },
+    "matrix_pins": {
+        "cols": [
+            "GP26",
+            "GP27",
+            "GP0"
+        ],
+        "rows": [
+            "GP28",
+            "GP29",
+            "GP3"
+        ]
+    },
+    "encoder": {
+        "rotary": [
+            {
+                "pin_a": "GP2",
+                "pin_b": "GP4"
+            }
+        ]
+    },
+    "ws2812": {
+        "pin": "GP1",
+        "driver": "vendor"
+    },
+    "rgb_matrix": {
+        "driver": "ws2812",
+        "max_brightness": 150,
+        "sleep": true,
+        "default": {
+            "animation": "cycle_pinwheel",
+            "val": 150
+        },
+        "animations": {
+            "cycle_pinwheel": true,
+            "cycle_spiral": true,
+            "cycle_left_right": true,
+            "rainbow_moving_chevron": true,
+            "splash": true,
+            "jellybean_raindrops": true,
+            "solid_color": true,
+            "breathing": true,
+            "band_val": true,
+            "band_pinwheel_val": true,
+            "band_spiral_val": true,
+            "solid_reactive_simple": true,
+            "solid_reactive": true,
+            "solid_reactive_wide": true,
+            "solid_reactive_cross": true,
+            "solid_splash": true
+        }
+    },
+    "processor": "RP2040",
+    "url": "https://github.com/lixtheyt",
+    "usb": {
+        "device_version": "1.0.0",
+        "pid": "0x4D50",
+        "vid": "0xFEED"
+    },
+    "layouts": {
+        "LAYOUT": {
+            "layout": [
+                {
+                    "matrix": [
+                        0,
+                        0
+                    ],
+                    "x": 0,
+                    "y": 0
+                },
+                {
+                    "matrix": [
+                        0,
+                        1
+                    ],
+                    "x": 1,
+                    "y": 0
+                },
+                {
+                    "matrix": [
+                        0,
+                        2
+                    ],
+                    "x": 2,
+                    "y": 0
+                },
+                {
+                    "matrix": [
+                        1,
+                        0
+                    ],
+                    "x": 0,
+                    "y": 1
+                },
+                {
+                    "matrix": [
+                        1,
+                        1
+                    ],
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "matrix": [
+                        1,
+                        2
+                    ],
+                    "x": 3,
+                    "y": 0
+                },
+                {
+                    "matrix": [
+                        2,
+                        0
+                    ],
+                    "x": 0,
+                    "y": 2
+                },
+                {
+                    "matrix": [
+                        2,
+                        1
+                    ],
+                    "x": 1,
+                    "y": 2
+                },
+                {
+                    "matrix": [
+                        2,
+                        2
+                    ],
+                    "x": 2.25,
+                    "y": 1.75
+                }
+            ]
+        }
+    }
+}
