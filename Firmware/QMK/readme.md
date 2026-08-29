@@ -23,13 +23,13 @@ encoder and every effect are shared.
 
 The four LEDs `rev16` leaves out (D17-D20) are the last in the WS2812 chain, so
 the remaining sixteen still light normally on a board that never had them
-fitted. SW8 and SW9 lose their per-key LED and the reactive effects skip those
-two positions; nothing else changes.
+fitted. The encoder loses its per-key LED and the reactive effects skip that one
+position; nothing else changes.
 
 Flashing `rev20` onto a 16-LED board is not harmful, but the effects will run
 as if four LEDs existed past the end of the chain, so a fifth of every animation
-is spent lighting nothing. The RGB layers put the compiled-in LED count on the
-OLED (`20L` / `16L`) so it is easy to confirm which build is on the board.
+is spent lighting nothing. The idle screen carries the compiled-in count
+(`mediapad 16 LED`) so it is easy to confirm which build is on the board.
 
 ## Building
 
@@ -55,26 +55,24 @@ Clicking the encoder opens a mode picker that previews rather than switches:
 * **Click again** - confirms, and only now does the mode change
 * **Let it lapse** - stays exactly where you were
 
-Confirming is deliberate: a stray turn can no longer drop the board into the RGB
-mode and re-apply its effect behind your back. The picker is the only way into
-the RGB mode, so no media key is spent on the LEDs.
-
 On the five media modes all eight switches stay media keys and only the dial
 changes. The RGB mode is the one place the keys change meaning, and nothing
-there falls through to playback. On the media layers all eight switches stay media keys and
-only the dial changes; on the RGB layers the switches become colour controls and
-nothing falls through to playback.
+there falls through to playback, so a colour cannot be dialled in by accident
+while music is running, and playback cannot be disturbed while it is.
+
+In the RGB mode the keys only *aim* the dial - SW1/SW2/SW3 at red, green and
+blue, SW4 at the effect list, SW6 at brightness - and the dial does the
+changing. Whatever it is pointed at is shown inverted on the OLED.
 
 ### Help browser
 
 Press **play/pause + rewind together**. Turn the encoder to walk the list of
-what each key does, click it to be shown the answer - everything goes dark
-except the LED under the key that does that job - and press any switch to back
-out. The list follows whichever layer it was opened from.
+what each key does, click it for the answer, and press any switch to back out.
+The list follows whichever mode it was opened from.
 
-The answer lights the four LEDs nearest that key, brightest first, so it reads
-as a place on the board rather than a single pinpoint. That also means it still
-points somewhere on `rev16`, which has no LED behind the encoder.
+The answer comes two ways at once: the LEDs either side of the key light up with
+the key itself as the dark gap between them, and the display spells the position
+out in words ("top row, 2nd of 4", "the encoder").
 
 The switches sit like this, which is the order the help list walks:
 
@@ -90,7 +88,7 @@ Enter the bootloader in 3 ways:
 * **Physical reset button**: Double-tap the reset button on the XIAO RP2040
 * **Key combo**: Hold rewind + fast-forward + mute for 5 seconds
 
-The key combos are only armed on the media layers (0-4). On the two RGB layers
+The key combos are only armed on the media modes (layers 0-4). In the RGB mode
 those same switches are the colour selectors, so holding two of them while
-mixing a colour would otherwise trip the reboot combo. Tap the encoder to get
-back to layer 0 first.
+mixing a colour would otherwise trip the reboot combo. Click the encoder, turn
+to a media mode and click again to confirm before using one.

@@ -1,14 +1,27 @@
 .claude/
+CLAUDE.local.md
 
+# Python / PyInstaller
 __pycache__/
 *.pyc
 build/
+dist/
 *.spec
+.venv/
+venv/
 
+# KiCad: per-user UI state, auto-backups, lock and cache files
+*.kicad_prl
+*-backups/
+~*.lck
+fp-info-cache
+*-cache.lib
+*.kicad_pcb-bak
+*.kicad_sch-bak
+
+# Blender auto-backups
+*.blend[0-9]
+
+# OS
 Thumbs.db
 .DS_Store
-
-CLAUDE.local.md
-
-Companion/README.md
-Companion/src

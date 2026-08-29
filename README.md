@@ -4,7 +4,7 @@
 
 # Mediapad
 
-Mediapad is an 8 key hackpad with a rotary encoder, an OLED Display. It also has 20 SK6812 MINI-E LEDs, and uses QMK firmware.
+Mediapad is an 9 key hackpad with a rotary encoder, an OLED Display. It also has 20/16 SK6812 MINI-E LEDs, and uses QMK firmware.
 
 ## Features:
 - 128x32 OLED Display
@@ -12,11 +12,17 @@ Mediapad is an 8 key hackpad with a rotary encoder, an OLED Display. It also has
 - 20 SK6812 MINI-E LEDs. We gotta make somethin' for party nah??
 - cool designed case
 
+## Video
+
+<video src="https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4" controls muted playsinline width="600"></video>
+
+[Watch it here](https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4) if the player above does not load.
+
 ## CAD Model:
 Everything fits together using 6 M3 Bolts and heatset inserts. 4 for the case and 2 for the PCB.
 
-It has 4 separate printed pieces.
-3 are parts of the case and 1 is a spacer for the glow...
+It has 8 separate printed pieces.
+3 are parts of the case, 1 is a spacer for the glow and 1 is for the OLED display as a support.
 
 <img src=CAD/assets/image.png alt="Schematic" width="500"/>
 
@@ -37,40 +43,106 @@ Libraries I used were originally from the Hackpad website but I also used some t
 ## Firmware Overview
 This hackpad uses [QMK](https://qmk.fm/) firmware for everything.
 
+### Two builds
+
+The board exists in two LED populations, so the firmware ships as two revisions.
+They differ only in the LED map keys, encoder and OLED are shared.
+
+| Revision | LEDs | Board |
+| --- | --- | --- |
+| `rev20` | D1-D20 | fully populated |
+| `rev16` | D1-D16 | built without the four LEDs ringing the encoder |
+
+The four LEDs `rev16` leaves out are last in the WS2812 chain, so the remaining
+sixteen still light normally. The idle screen prints the count
+(`mediapad 16 LED`) so you can tell which build is on the board.
+
+```bash
+make mediapad/rev20:lixtheyt
+```
+
+### The keys
+
+All eight switches are media keys, on every mode except RGB. Only what the
+encoder does changes from mode to mode.
+
+```
+SW1 play/pause   SW2 rewind       SW3 fast forward   SW6 mute
+SW4 prev track   SW5 next track
+SW7 repeat       SW8 shuffle      SW9 = the encoder
+```
 
 ### Rotary encoder
-Tapping the encoder cycles through five modes; turning it then performs that
-mode's action. The mode name flashes on the OLED each time you tap.
 
-1. **Volume** — volume up / down
-2. **Track skip** — next / previous track
-3. **Arrows** — arrow up / down
-4. **Scroll** — mouse wheel up / down
-5. **Zoom** — zoom in / out (Ctrl +/-)
+Clicking the encoder opens a mode picker that **previews** rather than switches:
 
+* **Click** - opens it, showing the mode you are already in
+* **Turn** - walks the list, nothing has changed yet
+* **Click again** - confirms, and only now does the mode change
+* **Wait** - it lapses and you stay exactly where you were
+
+1. **Volume** - volume up / down
+2. **Track skip** - next / previous track
+3. **Arrows** - arrow up / down
+4. **Scroll** - mouse wheel up / down
+5. **Zoom** - zoom in / out, sent as Ctrl + wheel so it does not depend on your
+   keyboard layout
+6. **RGB** - the lighting, below
 
 ### RGB
-The lighting is separate from the encoder cycle and is opened with the two middle
-keys, so it does not eat one of the modes above:
 
-- **RGB Scene** — 6 premade animations: Pinwheel, Vortex (color swirl around
-  the board), Rainbow wave, Chevron, Splash and Raindrops. On this layer the
-  encoder switches scene or sets brightness.
-- **RGB Custom** — mix your own color (red / green / blue / brightness, each dialled
-  in with the encoder) and pick from ten effects, including reactive ones that
-  light up outward from the key you press.
+RGB contains 16 effects. The first six run their own colours
+(Pinwheel, Vortex, Rainbow wave, Chevron, Splash, Raindrops), the other ten come
+out in whatever you mix, and several of those react to keypresses and spread
+outward from the key you hit.
 
+The keys aim the dial, and the dial does the changing:
+
+```
+SW1 red   SW2 green   SW3 blue   SW6 brightness   SW4 effect list
+```
+
+### Help browser
+
+Press **play/pause + rewind together** if you forget what a key does. Turn the
+encoder to walk the list, click it for the answer, press anything to back out.
+The list follows whichever mode you opened it from.
+
+The LEDs either side of that key light up
+with the key itself as the dark gap between them, and the display spells the
+position out in words. The words are the part that always works the LED grid
+sits about half a key pitch off the switch grid, so no single LED can point at a
+key without also looking like it points at its neighbour.
 
 ### OLED
-Shows the currently playing track — title, artist and a progress bar — streamed
-from the companion app below, plus the name of each mode when you switch.
-When messing with RGB lighting it also shows current informations that are helpful for setting it correctly.
+
+While something is playing, a scrolling title and artist, a progress bar, and a
+bottom row carrying play/pause on the left, the clock, and shuffle / repeat
+symbols on the right. The clock runs locally rather than echoing the host,
+because Windows only refreshes its playback position every few seconds.
+
+Otherwise: the board name and LED count, the current mode, and either
+`waiting for app` (nothing arriving) or `nothing playing` (the app is connected,
+but Windows has no media session).
+
+### Hidden key combos
+
+Armed on the media modes only on the RGB mode those same switches are colour
+controls.
+
+| Hold | For | Does |
+| --- | --- | --- |
+| rewind + fast forward + mute | 5 s | bootloader |
+| repeat + shuffle + mute | 5 s | clear EEPROM |
+| rewind + fast forward | 2 s | reboot |
+| repeat + shuffle | 2 s | toggle debug |
+
+You can also reach the bootloader by holding the top left key while plugging in,
+or by double-tapping the reset button on the XIAO.
 
 ## Firmware:
 I want to note out that the firmware was mostly done by AI due to my limited C knowledge
 and the difficulty to create a firmware that does such advanced things.
-
-
 
 ## BOM:
 
@@ -79,17 +151,19 @@ and the difficulty to create a firmware that does such advanced things.
 - 6x M3x5x4 Heatset inserts
 - 6x M3x16mm Screws
 - 8x 1N4148 DO-35 Diodes
-- 20x SK6812 MINI-E LEDs
+- 16x/20x SK6812 MINI-E LEDs (16x = encoder has no LEDs)
 - 1x 0.91" 128x32 OLED Display
 - 1x EC11 Rotary Encoder
 - 1x XIAO RP2040
 - 1x Case (1x bottom case, 1x middle case, 1x top case)
 - 6x Spacers (printed part)
+- 1x Display Support (printed part, use a double-sided tape so it will hold)
 
 ## Companion app (now playing on the OLED)
 
 `Companion/mediapad_tray.exe` is a portable application made in Python that feeds Mediapad with the latest
-information about current played media on your computer. Without it the OLED just shows "Hackpad".
+information about current played media on your computer. Without it the OLED shows the board name and
+`waiting for app`, everything except the now-playing screen still works.
 
 As I have mentioned... it is a portable application. That means you don't have to install anything.
 Just open, mess with it in the tray (where background applications are located) and make sure to enable
