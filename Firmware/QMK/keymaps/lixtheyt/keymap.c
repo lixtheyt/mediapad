@@ -469,7 +469,27 @@ void keyboard_post_init_user(void) {
     apply_rgb();
 }
 
+/* Ctrl is held across the whole zoom gesture rather than wrapped around each
+ * detent. Registering it and letting go again on every step raced the wheel
+ * report - the host frequently saw the wheel with Ctrl already released, which
+ * is just a scroll, so the zoom only caught occasionally. It is dropped once
+ * the turning stops. */
+#define ZOOM_CTRL_HOLD_MS 400
+
+static bool     zoom_ctrl_held  = false;
+static uint32_t zoom_ctrl_timer = 0;
+
+static void zoom_ctrl_release(void) {
+    if (zoom_ctrl_held) {
+        unregister_code(KC_LCTL);
+        zoom_ctrl_held = false;
+    }
+}
+
 void matrix_scan_user(void) {
+    if (zoom_ctrl_held && timer_elapsed32(zoom_ctrl_timer) > ZOOM_CTRL_HOLD_MS) {
+        zoom_ctrl_release();
+    }
     update_hidden_combos();
 }
 
@@ -522,6 +542,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * the dial pointed at something and its effect re-applied, or arriving there
  * leaves the knob doing nothing at all. */
 static void enter_layer(uint8_t layer) {
+    /* Never carry a held Ctrl out of the zoom mode. */
+    zoom_ctrl_release();
     layer_move(layer);
 
     if (layer == LAYER_RGB) {
@@ -1170,10 +1192,19 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
             /* Ctrl + wheel, not Ctrl + '=' / '-'. Those two keycodes are
              * *positions* on a US layout; on a Slovak one - or any other - they
              * land on different characters and the zoom never happens. The
-             * wheel carries no layout at all, and more applications honour it. */
-            register_code(KC_LCTL);
-            tap_code(clockwise ? MS_WHLU : MS_WHLD);
-            unregister_code(KC_LCTL);
+             * wheel carries no layout at all, and more applications honour it.
+             *
+             * The waits are not padding: the modifier and the wheel go out on
+             * different USB endpoints, so Ctrl needs to be settled before the
+             * first wheel report, and the mouse report needs a moment between
+             * press and release or the mousekey system coalesces it away. */
+            if (!zoom_ctrl_held) {
+                register_code(KC_LCTL);
+                zoom_ctrl_held = true;
+                wait_ms(12);
+            }
+            zoom_ctrl_timer = timer_read32();
+            tap_code_delay(clockwise ? MS_WHLU : MS_WHLD, 12);
             break;
 
         case LAYER_RGB:
