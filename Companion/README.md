@@ -7,7 +7,7 @@ Raw HID.
 
 ## Running it
 
-Just double-click **`dist\mediapad_tray.exe`**. It is fully portable... one file,
+Just double-click **`mediapad_tray.exe`**. It is fully portable... one file,
 nothing to install, no folders created next to it.
 
 Right-click the tray icon for the menu:
@@ -16,10 +16,18 @@ Right-click the tray icon for the menu:
 |------|--------------|
 | *(top line)* | The track currently being sent |
 | *Keyboard: …* | Connection status |
-| **Send now playing** | Pause/resume streaming without quitting |
+| **Send now playing** | Pause/resume streaming without quitting. The icon turns amber while it is paused |
+| **Notify when the keyboard connects** | Shows a Windows notification every time the keyboard is found. Off by default |
 | **Run at startup** | Adds/removes an `HKCU\…\Run` entry (also shows under **Task Manager → Startup**, so you can disable it there too) |
-| **Uninstall** | Asks to confirm, removes the startup entry, then deletes the exe itself |
+| **MediaPad on GitHub** | Opens this repository |
+| **Uninstall** | Asks to confirm, removes the startup entry and its settings, then deletes the exe itself |
 | **Quit** | Stops the app for this session |
+
+The icon is green while the keyboard is connected, amber while sending is paused and grey when the
+keyboard is not found. Hover over it to see what is playing.
+
+**Send now playing** and **Notify when the keyboard connects** are remembered between restarts, in
+`HKCU\Software\MediapadCompanion`. Nothing else is written anywhere.
 
 ## Uninstalling
 
@@ -30,7 +38,7 @@ Tray icon → **Uninstall** → *Yes*.
 Only needed if you change `mediapad_tray.py`.
 
 ```bat
-pip install pystray pillow winrt-runtime winrt-Windows.Media winrt-Windows.Media.Control pyinstaller
+pip install -r requirements.txt
 build.bat
 ```
 

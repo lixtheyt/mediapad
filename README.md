@@ -184,6 +184,9 @@ The keys aim the dial, and the dial does the changing:
 SW1 red   SW2 green   SW3 blue   SW6 brightness   SW4 effect list
 ```
 
+Whatever you set is remembered. The colour, the brightness and the effect are saved a few seconds
+after you stop turning the dial, so they are still there after you unplug the board.
+
 ### Help browser
 
 Press **play/pause + rewind together** if you forget what a key does. Turn the
@@ -206,6 +209,10 @@ because Windows only refreshes its playback position every few seconds.
 Otherwise: the board name and LED count, the current mode, and either
 `waiting for app` (nothing arriving) or `nothing playing` (the app is connected,
 but Windows has no media session).
+
+The display turns itself off after five minutes with no key pressed, no turn of the encoder and
+nothing playing, so the idle screen does not burn into the OLED. Any key, any turn or a track that
+starts playing turns it back on.
 
 ### Hidden key combos
 

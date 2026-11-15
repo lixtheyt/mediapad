@@ -102,6 +102,7 @@ static const uint8_t help_bracket[3][3][2] = {
 static void oled_row(uint8_t row, const char *text);
 static void oled_splash(const char *text);
 void apply_rgb(void);
+static void rgb_defaults(void);
 
 static bool is_held(uint8_t r, uint8_t c) { return held[r][c]; }
 
@@ -159,6 +160,7 @@ static void update_hidden_combos(void) {
         case COMBO_EEPROM:
             eeconfig_init();
             rgb_matrix_enable_noeeprom();
+            rgb_defaults();
             apply_rgb();
             system_msg = "EEPROM CLEARED";
             system_msg_timer = timer_read32();
@@ -352,6 +354,47 @@ static void rgb_to_hs(uint8_t r, uint8_t g, uint8_t b, uint8_t *out_h, uint8_t *
     *out_h = (uint8_t)(((uint32_t)deg * 255) / 360);
 }
 
+/* The lighting is kept in EEPROM so it survives unplugging. It is written a
+ * few seconds after the last turn of the encoder rather than on every step,
+ * because one sweep of the dial is dozens of changes and flash wears. */
+typedef struct { uint8_t magic, r, g, b, val, effect; } rgb_saved_t;
+
+#define RGB_SAVED_MAGIC   0x4D
+#define RGB_SAVE_DELAY_MS 3000
+
+static bool     rgb_unsaved       = false;
+static uint32_t rgb_changed_timer = 0;
+
+static void rgb_defaults(void) {
+    rgb_r = rgb_g = rgb_b = 255;
+    rgb_val      = RGB_VAL_MAX;
+    effect_index = 0;
+    rgb_unsaved  = false;
+}
+
+static void rgb_load(void) {
+    rgb_saved_t saved = {0};
+    eeconfig_read_user_datablock(&saved, 0, sizeof(saved));
+
+    if (saved.magic != RGB_SAVED_MAGIC || saved.effect >= NUM_EFFECTS || saved.val > RGB_VAL_MAX) {
+        return;
+    }
+
+    rgb_r        = saved.r;
+    rgb_g        = saved.g;
+    rgb_b        = saved.b;
+    rgb_val      = saved.val;
+    effect_index = saved.effect;
+}
+
+static void rgb_save_tick(void) {
+    if (!rgb_unsaved || timer_elapsed32(rgb_changed_timer) < RGB_SAVE_DELAY_MS) return;
+
+    rgb_saved_t saved = {RGB_SAVED_MAGIC, rgb_r, rgb_g, rgb_b, rgb_val, effect_index};
+    eeconfig_update_user_datablock(&saved, 0, sizeof(saved));
+    rgb_unsaved = false;
+}
+
 void apply_rgb(void) {
     const rgb_preset_t *fx = &rgb_effects[effect_index];
     rgb_matrix_mode_noeeprom(fx->mode);
@@ -366,6 +409,7 @@ void apply_rgb(void) {
 
 void keyboard_post_init_user(void) {
     rgb_matrix_enable_noeeprom();
+    rgb_load();
     apply_rgb();
 }
 
@@ -386,6 +430,7 @@ void matrix_scan_user(void) {
         zoom_ctrl_release();
     }
     update_hidden_combos();
+    rgb_save_tick();
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -564,6 +609,11 @@ static void oled_row_marked(uint8_t row, const char *text, uint8_t mark, uint8_t
         oled_write_char(' ', false);
     }
 }
+
+/* The panel goes dark after this long with no key, no turn of the encoder and
+ * nothing playing, so a pad left plugged in overnight does not burn the idle
+ * screen into the OLED. Any input or a playing track lights it again. */
+#define OLED_IDLE_MS 300000
 
 #define OLED_RESYNC_MS 3000
 static uint32_t oled_resync_timer = 0;
@@ -793,6 +843,13 @@ static char last_np_title[sizeof(np_title)]   = {0};
 static char last_np_artist[sizeof(np_artist)] = {0};
 
 bool oled_task_user(void) {
+    if (help_state == HELP_OFF && !(np_playing && !nowplaying_is_stale()) &&
+        last_input_activity_elapsed() > OLED_IDLE_MS) {
+        oled_off();
+        return false;
+    }
+    oled_on();
+
     oled_resync_tick();
 
     if (help_state != HELP_OFF) {
@@ -928,6 +985,8 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
                 default: break;
             }
             apply_rgb();
+            rgb_unsaved       = true;
+            rgb_changed_timer = timer_read32();
             break;
     }
     return false;

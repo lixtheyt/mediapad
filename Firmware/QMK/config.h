@@ -25,3 +25,7 @@
 /* Needed by the reactive effects (solid_reactive*, splash, solid_splash):
  * without it QMK never records which key was hit, so nothing propagates. */
 #define RGB_MATRIX_KEYPRESSES
+
+/* Room in EEPROM for the lighting the user dialled in (rgb_saved_t in the
+ * lixtheyt keymap), so it survives unplugging. */
+#define EECONFIG_USER_DATA_SIZE 6
