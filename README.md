@@ -1,16 +1,52 @@
-<!-- HELYX_STATUS_START -->
-![Status](https://img.shields.io/badge/status-active-brightgreen)
-<!-- HELYX_STATUS_END -->
+<div align="center">
 
-# Mediapad
+# MediaPad
 
-Mediapad is an 9 key hackpad with a rotary encoder, an OLED Display. It also has 20/16 SK6812 MINI-E LEDs, and uses QMK firmware.
+---
 
-## Features:
-- 128x32 OLED Display
-- EC11 Rotary encode
-- 20 SK6812 MINI-E LEDs. We gotta make somethin' for party nah??
-- cool designed case
+**A 9 key hackpad with a rotary encoder, an OLED display and 20 LEDs that controls whatever is playing on your computer, and shows it to you on its own screen.**
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Firmware](https://img.shields.io/badge/firmware-QMK-333333.svg)](https://qmk.fm/)
+[![PCB](https://img.shields.io/badge/PCB-KiCad-314CB0.svg)](https://www.kicad.org/)
+[![Case](https://img.shields.io/badge/case-Blender-E87D0D.svg)](https://www.blender.org/)
+[![Board](https://img.shields.io/badge/board-XIAO_RP2040-008000.svg)](#bom)
+[![Stardance](https://img.shields.io/badge/stardance_project-FFFF00)](https://stardance.hackclub.com/@lix/projects)<!-- HELYX_STATUS_START -->
+![Status](https://img.shields.io/badge/status-active-brightgreen)<!-- HELYX_STATUS_END -->
+
+<img src="irl_assets/1.jpeg" alt="MediaPad" width="700">
+
+</div>
+
+## Table of contents
+
+- [Features](#features)
+- [Video](#video)
+- [Quick start](#quick-start)
+- [Build it yourself](#build-it-yourself)
+    - [BOM](#bom)
+    - [Case](#case)
+    - [PCB](#pcb)
+    - [IRL results](#irl-results)
+- [Firmware](#firmware)
+    - [Two builds](#two-builds)
+    - [The keys](#the-keys)
+    - [Rotary encoder](#rotary-encoder)
+    - [RGB](#rgb)
+    - [Help browser](#help-browser)
+    - [OLED](#oled)
+    - [Hidden key combos](#hidden-key-combos)
+- [Companion app](#companion-app)
+- [Credits](#credits)
+- [License](#license)
+
+## Features
+
+- **128x32 OLED display**, with the title, artist and progress of whatever is playing.
+- **EC11 rotary encoder**, which does something different in each of its six modes.
+- **20 SK6812 MINI-E LEDs**. We gotta make somethin' for party nah??
+- **Eight media keys**, the same on every mode except RGB, where they mix the colours.
+- **A cool designed case**, printed in 8 pieces.
 
 ## Video
 
@@ -18,34 +54,75 @@ Mediapad is an 9 key hackpad with a rotary encoder, an OLED Display. It also has
 
 [Watch it here](https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4) if the player above does not load.
 
-## CAD Model:
+## Quick start
+
+Everything you need to make one is in [`Production`](Production):
+
+| File | What it is |
+| --- | --- |
+| `gerbers.zip` | the PCB, ready to send to a manufacturer |
+| `topCase.stl`, `middleCase.stl`, `bottomCase.stl` | the three parts of the case |
+| `spacer.stl` | the spacer for the glow, print 6 |
+| `support_display.stl` | the support for the OLED display |
+| `mediapad_rev20_lixtheyt.uf2` | firmware for a board with all 20 LEDs |
+| `mediapad_rev16_lixtheyt.uf2` | firmware for a board with 16 LEDs |
+
+To flash it, hold the top left key while plugging the board in. It shows up as a drive on your
+computer. Copy the `.uf2` that matches your board onto it and it restarts by itself.
+
+Then start [`Companion/mediapad_tray.exe`](Companion), so the display knows what is playing.
+
+## Build it yourself
+
+### BOM
+
+- 8x Cherry MX Switches
+- 8x Keycaps
+- 6x M3x5x4 Heatset inserts
+- 6x M3x16mm Screws
+- 8x 1N4148 DO-35 Diodes
+- 16x/20x SK6812 MINI-E LEDs (16x = encoder has no LEDs)
+- 1x 0.91" 128x32 OLED Display
+- 1x EC11 Rotary Encoder
+- 1x XIAO RP2040
+- 1x Case (1x bottom case, 1x middle case, 1x top case)
+- 6x Spacers (printed part)
+- 1x Display Support (printed part, use a double-sided tape so it will hold)
+
+### Case
+
 Everything fits together using 6 M3 Bolts and heatset inserts. 4 for the case and 2 for the PCB.
 
 It has 8 separate printed pieces.
 3 are parts of the case, 1 is a spacer for the glow and 1 is for the OLED display as a support.
 
-<img src=CAD/assets/image.png alt="Schematic" width="500"/>
-
-
-## PCB
-I made my PCB inside KiCad.
-Libraries I used were originally from the Hackpad website but I also used some that I had found on [grabcad](https://grabcad.com/library)
-
-
-### Schematic
-<img src=PCB/assets/schematic.png alt="Schematic" width="600"/>
-
+<img src="CAD/assets/image.png" alt="Case" width="500">
 
 ### PCB
-<img src=PCB/assets/pcb.png alt="PCB" width="500"/>
 
-### IRL Results
-![IRL1](irl_assets/1.jpeg)
-![IRL2](irl_assets/2.jpeg)
-![IRL3](irl_assets/3.jpeg)
+I made my PCB inside KiCad.
+Libraries I used were originally from the Hackpad website but I also used some that I had found on [grabcad](https://grabcad.com/library).
 
+**Schematic**
 
-## Firmware Overview
+<img src="PCB/assets/schematic.png" alt="Schematic" width="600">
+
+**Board**
+
+<img src="PCB/assets/pcb.png" alt="PCB" width="500">
+
+### IRL results
+
+<div align="center">
+
+<img src="irl_assets/1.jpeg" alt="MediaPad, lit up" width="32%">
+<img src="irl_assets/2.jpeg" alt="MediaPad" width="32%">
+<img src="irl_assets/3.jpeg" alt="MediaPad" width="32%">
+
+</div>
+
+## Firmware
+
 This hackpad uses [QMK](https://qmk.fm/) firmware for everything.
 
 ### Two builds
@@ -115,7 +192,7 @@ The list follows whichever mode you opened it from.
 
 The LEDs either side of that key light up
 with the key itself as the dark gap between them, and the display spells the
-position out in words. The words are the part that always works the LED grid
+position out in words. The words are the part that always works. The LED grid
 sits about half a key pitch off the switch grid, so no single LED can point at a
 key without also looking like it points at its neighbour.
 
@@ -132,7 +209,7 @@ but Windows has no media session).
 
 ### Hidden key combos
 
-Armed on the media modes only on the RGB mode those same switches are colour
+Armed on the media modes only. On the RGB mode those same switches are colour
 controls.
 
 | Hold | For | Does |
@@ -145,28 +222,9 @@ controls.
 You can also reach the bootloader by holding the top left key while plugging in,
 or by double-tapping the reset button on the XIAO.
 
-## Firmware:
-I want to note out that the firmware was mostly done by AI due to my limited C knowledge
-and the difficulty to create a firmware that does such advanced things.
+## Companion app
 
-## BOM:
-
-- 8x Cherry MX Switches
-- 8x Keycaps
-- 6x M3x5x4 Heatset inserts
-- 6x M3x16mm Screws
-- 8x 1N4148 DO-35 Diodes
-- 16x/20x SK6812 MINI-E LEDs (16x = encoder has no LEDs)
-- 1x 0.91" 128x32 OLED Display
-- 1x EC11 Rotary Encoder
-- 1x XIAO RP2040
-- 1x Case (1x bottom case, 1x middle case, 1x top case)
-- 6x Spacers (printed part)
-- 1x Display Support (printed part, use a double-sided tape so it will hold)
-
-## Companion app (now playing on the OLED)
-
-`Companion/mediapad_tray.exe` is a portable application made in Python that feeds Mediapad with the latest
+`Companion/mediapad_tray.exe` is a portable application made in Python that feeds MediaPad with the latest
 information about current played media on your computer. Without it the OLED shows the board name and
 `waiting for app`, everything except the now-playing screen still works.
 
@@ -175,3 +233,16 @@ Just open, mess with it in the tray (where background applications are located) 
 the setting that allows it to open on start up of your computer, so you don't have to turn it on manually
 every time you turn on your computer. If you've got no idea where the tray with the background applications
 is located then please, [google it](https://www.google.com/search?q=Where+is+the+background+tray+located?).
+
+## Credits
+
+- [QMK](https://qmk.fm/), the firmware everything here runs on.
+- [KiCad](https://www.kicad.org/) for the PCB and [Blender](https://www.blender.org/) for the case.
+- The [Hackpad](https://hackpad.hackclub.com/) guide by Hack Club, where the first libraries came from.
+
+I want to note out that the firmware was mostly done by AI due to my limited C knowledge
+and the difficulty to create a firmware that does such advanced things.
+
+## License
+
+[MIT](LICENSE)
