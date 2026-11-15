@@ -1,5 +1,5 @@
 pystray==0.19.5
-pillow==12.3.0
+pillow==13.0.0
 winrt-runtime==3.2.1
 winrt-Windows.Media==3.2.1
 winrt-Windows.Media.Control==3.2.1
