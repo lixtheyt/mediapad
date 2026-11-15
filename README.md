@@ -2,8 +2,6 @@
 
 # MediaPad
 
----
-
 **A 9 key hackpad with a rotary encoder, an OLED display and 20 LEDs that controls whatever is playing on your computer, and shows it to you on its own screen.**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
