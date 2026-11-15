@@ -1,0 +1,53 @@
+name: Firmware
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - Firmware/**
+      - .github/workflows/firmware.yml
+  pull_request:
+    branches: [ main ]
+    paths:
+      - Firmware/**
+      - .github/workflows/firmware.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        revision: [ rev20, rev16 ]
+        keymap: [ lixtheyt, default ]
+
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/checkout@v7
+        with:
+          repository: qmk/qmk_firmware
+          ref: dbd9b0a379ce0fcea85c4c420a306c9f34e940d9
+          submodules: recursive
+          path: qmk_firmware
+
+      - name: Copy the keyboard into QMK
+        run: |
+          mkdir -p qmk_firmware/keyboards/mediapad
+          cp -r Firmware/QMK/. qmk_firmware/keyboards/mediapad/
+
+      - name: Build
+        working-directory: qmk_firmware
+        run: |
+          git config --global --add safe.directory '*'
+          make mediapad/${{ matrix.revision }}:${{ matrix.keymap }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: mediapad_${{ matrix.revision }}_${{ matrix.keymap }}
+          path: qmk_firmware/mediapad_${{ matrix.revision }}_${{ matrix.keymap }}.uf2
+          if-no-files-found: error

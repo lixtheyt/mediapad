@@ -48,9 +48,11 @@
 
 ## Video
 
-<video src="https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4" controls muted playsinline width="600"></video>
+<a href="https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4">
+  <img src="irl_assets/video.jpg" alt="Watch the video" width="600">
+</a>
 
-[Watch it here](https://cdn.hackclub.com/01a04d73-aebd-7f39-ae7c-5dad24e6ee75/video_mediapad.mp4) if the player above does not load.
+Click the picture to watch it.
 
 ## Quick start
 

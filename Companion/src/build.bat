@@ -1,6 +1,6 @@
 @echo off
 REM Builds a single portable mediapad_tray.exe. Nothing to install afterwards.
-REM Requires: pip install pystray pillow winrt-runtime winrt-Windows.Media winrt-Windows.Media.Control pyinstaller
+REM Requires: pip install -r requirements.txt
 setlocal
 cd /d "%~dp0"
 

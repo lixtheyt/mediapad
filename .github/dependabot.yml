@@ -1,0 +1,12 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: /Companion/src
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      winrt:
+        patterns:
+          - "winrt-*"
